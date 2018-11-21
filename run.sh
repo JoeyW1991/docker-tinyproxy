@@ -70,14 +70,6 @@ stopService() {
     fi
 }
 
-parseAccessRules() {
-    list=''
-    for ARG in $@; do
-        line="Allow\t$ARG\n"
-        list+=$line
-    done
-    echo "$list" | sed 's/.\{2\}$//'
-}
 
 setMiscConfig() {
     sed -i -e"s,^MinSpareServers ,MinSpareServers\t1 ," $PROXY_CONF
@@ -127,10 +119,8 @@ fi
 echo && screenOut "$PROG_NAME script started..."
 # Stop Tinyproxy if running
 stopService
-# Parse ACL from args
-export rawRules="$@" && parsedRules=$(parseAccessRules $rawRules) && unset rawRules
 # Set ACL in Tinyproxy config
-setAccess $parsedRules
+setAccess 
 # Enable log to file
 enableLogFile
 # Start Tinyproxy
