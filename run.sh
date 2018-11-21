@@ -43,20 +43,6 @@ checkStatus() {
     esac
 }
 
-displayUsage() {
-    echo
-    echo '  Usage:'
-    echo "      docker run -d --name='tinyproxy' -p <Host_Port>:8888 dannydirect/tinyproxy:latest <ACL>"
-    echo
-    echo "      - Set <Host_Port> to the port you wish the proxy to be accessible from."
-    echo "      - Set <ACL> to 'ANY' to allow unrestricted proxy access, or one or more spece seperated IP/CIDR addresses for tighter security."
-    echo
-    echo "      Examples:"
-    echo "          docker run -d --name='tinyproxy' -p 6666:8888 dannydirect/tinyproxy:latest ANY"
-    echo "          docker run -d --name='tinyproxy' -p 7777:8888 dannydirect/tinyproxy:latest 87.115.60.124"
-    echo "          docker run -d --name='tinyproxy' -p 8888:8888 dannydirect/tinyproxy:latest 10.103.0.100/24 192.168.1.22/16"
-    echo
-}
 
 stopService() {
     screenOut "Checking for running Tinyproxy service..."
@@ -68,32 +54,6 @@ stopService() {
     else
         screenOut "Tinyproxy service not running."
     fi
-}
-
-
-setMiscConfig() {
-    sed -i -e"s,^MinSpareServers ,MinSpareServers\t1 ," $PROXY_CONF
-    checkStatus $? "Set MinSpareServers - Could not edit $PROXY_CONF" \
-                   "Set MinSpareServers - Edited $PROXY_CONF successfully."
-
-    sed -i -e"s,^MaxSpareServers ,MaxSpareServers\t1 ," $PROXY_CONF
-    checkStatus $? "Set MinSpareServers - Could not edit $PROXY_CONF" \
-                   "Set MinSpareServers - Edited $PROXY_CONF successfully."
-    
-    sed -i -e"s,^StartServers ,StartServers\t1 ," $PROXY_CONF
-    checkStatus $? "Set MinSpareServers - Could not edit $PROXY_CONF" \
-                   "Set MinSpareServers - Edited $PROXY_CONF successfully."
-}
-
-enableLogFile() {
-	touch /var/log/tinyproxy/tinyproxy.log
-	sed -i -e"s,^#LogFile,LogFile," $PROXY_CONF
-}
-
-setAccess() {
-    sed -i -e"s/^Allow /#Allow /" $PROXY_CONF
-    checkStatus $? "Allowing ANY - Could not edit $PROXY_CONF" \
-                   "Allowed ANY - Edited $PROXY_CONF successfully."
 }
 
 startService() {
@@ -110,19 +70,11 @@ tailLog() {
                    "Stopped tailing $TAIL_LOG"
 }
 
-# Check args
-if [ "$#" -lt 1 ]; then
-    displayUsage
-    exit 1
-fi
+
 # Start script
 echo && screenOut "$PROG_NAME script started..."
 # Stop Tinyproxy if running
 stopService
-# Set ACL in Tinyproxy config
-setAccess 
-# Enable log to file
-enableLogFile
 # Start Tinyproxy
 startService
 # Tail Tinyproxy log
